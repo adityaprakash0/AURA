@@ -1,12 +1,18 @@
 import nodemailer from 'nodemailer';
 
-// 1. Transporter setup (Aap Gmail use kar sakte hain)
+// 1. Transporter setup (Direct SMTP for better stability on Render)
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // Use SSL for port 465
     auth: {
         user: process.env.EMAIL_USER, // Aapka Gmail address
-        pass: process.env.EMAIL_PASS  // Aapka App Password (not your regular password)
-    }
+        pass: process.env.EMAIL_PASS  // Aapka 16-digit App Password
+    },
+    // Timeout issues se bachne ke liye extra settings
+    connectionTimeout: 10000, 
+    greetingTimeout: 10000,
+    socketTimeout: 10000
 });
 
 // 2. Verification Email bhejne ka function
@@ -30,7 +36,8 @@ export const sendVerificationEmail = async (userEmail, userName, otp) => {
             `
         };
 
-        await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent successfully:", info.messageId);
         return { success: true };
     } catch (error) {
         console.error("Email Error:", error);
