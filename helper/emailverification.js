@@ -1,21 +1,19 @@
 import nodemailer from 'nodemailer';
 
-// 1. Transporter setup (Direct SMTP for better stability on Render)
+// Transporter setup with Port 587 (Better for Render stability)
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // Use SSL for port 465
+    port: 587,
+    secure: false, // Port 587 ke liye false hona chahiye
     auth: {
-        user: process.env.EMAIL_USER, // Aapka Gmail address
-        pass: process.env.EMAIL_PASS  // Aapka 16-digit App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
-    // Timeout issues se bachne ke liye extra settings
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    tls: {
+        rejectUnauthorized: false // Connection errors se bachne ke liye
+    }
 });
 
-// 2. Verification Email bhejne ka function
 export const sendVerificationEmail = async (userEmail, userName, otp) => {
     try {
         const mailOptions = {
@@ -23,21 +21,17 @@ export const sendVerificationEmail = async (userEmail, userName, otp) => {
             to: userEmail,
             subject: 'Verify Your AURA Account',
             html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #2563eb;">Welcome to AURA, ${userName}!</h2>
-                    <p>Thank you for signing up. Please use the following One-Time Password (OTP) to verify your email address:</p>
-                    <div style="background: #f4f7fb; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1e293b; border-radius: 8px;">
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2>Welcome to AURA, ${userName}!</h2>
+                    <p>Use the OTP below to verify your email:</p>
+                    <div style="background: #f4f7fb; padding: 15px; font-size: 24px; font-weight: bold;">
                         ${otp}
                     </div>
-                    <p style="margin-top: 20px; font-size: 0.9rem; color: #64748b;">This OTP is valid for 10 minutes. If you didn't request this, please ignore this email.</p>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-                    <p style="font-size: 0.8rem; color: #94a3b8;">Developed by Aditya Prakash</p>
                 </div>
             `
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully:", info.messageId);
+        await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
         console.error("Email Error:", error);
@@ -45,7 +39,6 @@ export const sendVerificationEmail = async (userEmail, userName, otp) => {
     }
 };
 
-// 3. Simple OTP Generator
 export const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
+    return Math.floor(100000 + Math.random() * 900000).toString();
 };
