@@ -1,0 +1,7 @@
+
+> cp@1.0.0 start
+> node server.js
+
+◇ injected env (5) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Server is running on port 5000
+MongoDB Connected
